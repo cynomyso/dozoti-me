@@ -75,6 +75,7 @@
 </head>
 <body>
   <h1>Yo</h1>
+  <button id="enableBtn" style="padding:0.75rem 1.5rem;font-size:1.1rem;font-weight:700;border:none;border-radius:8px;background:#facc15;color:#000;cursor:pointer;margin-bottom:1.5rem;display:none;">Enable Notifications</button>
   <form id="yoForm">
     <input id="location" type="text" placeholder="Zipline West" autocomplete="off" autofocus>
     <button type="submit">Send</button>
@@ -95,32 +96,7 @@
     }
 
     // --- Service Worker & Push Subscription ---
-    async function setupPush() {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        $status.textContent = 'Push notifications not supported in this browser.';
-        return;
-      }
-
-      const reg = await navigator.serviceWorker.register('/sw.js');
-      await navigator.serviceWorker.ready;
-
-      const { publicKey } = await fetch('/api/vapid-public-key').then((r) => r.json());
-
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
-        await fetch('/api/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sub),
-        });
-      }
-
-      $status.textContent = 'Subscribed — you\'ll get notified.';
-    }
+    const $enableBtn = document.getElementById('enableBtn');
 
     function urlBase64ToUint8Array(base64String) {
       const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -129,10 +105,52 @@
       return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
     }
 
-    setupPush().catch((err) => {
-      console.error(err);
-      $status.textContent = `Error: ${err.name}: ${err.message}`;
+    async function subscribeToPush() {
+      const reg = await navigator.serviceWorker.ready;
+      const { publicKey } = await fetch('/api/vapid-public-key').then((r) => r.json());
+
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+      await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sub),
+      });
+
+      $enableBtn.style.display = 'none';
+      $status.textContent = 'Subscribed — you\'ll get notified.';
+    }
+
+    async function checkPush() {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        $status.textContent = 'Push notifications not supported in this browser.';
+        return;
+      }
+
+      await navigator.serviceWorker.register('/sw.js');
+      const reg = await navigator.serviceWorker.ready;
+      const existing = await reg.pushManager.getSubscription();
+
+      if (existing) {
+        $status.textContent = 'Subscribed — you\'ll get notified.';
+      } else {
+        $enableBtn.style.display = 'block';
+        $status.textContent = 'Tap the button to enable notifications.';
+      }
+    }
+
+    $enableBtn.addEventListener('click', () => {
+      $enableBtn.disabled = true;
+      subscribeToPush().catch((err) => {
+        console.error(err);
+        $status.textContent = `Error: ${err.name}: ${err.message}`;
+        $enableBtn.disabled = false;
+      });
     });
+
+    checkPush();
 
     // --- Send Yo ---
     $form.addEventListener('submit', async (e) => {
