@@ -131,7 +131,7 @@
 
     setupPush().catch((err) => {
       console.error(err);
-      $status.textContent = 'Could not subscribe to push.';
+      $status.textContent = `Error: ${err.name}: ${err.message}`;
     });
 
     // --- Send Yo ---
