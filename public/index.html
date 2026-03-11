@@ -16,7 +16,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #0a0a0a;
+      background: #3B0A2A;
       color: #fff;
     }
     h1 {
@@ -74,14 +74,27 @@
   </style>
 </head>
 <body>
-  <h1>DozoTime!</h1>
-  <button id="enableBtn" style="padding:0.75rem 1.5rem;font-size:1.1rem;font-weight:700;border:none;border-radius:8px;background:#facc15;color:#000;cursor:pointer;margin-bottom:1.5rem;display:none;">Enable Notifications</button>
-  <form id="yoForm">
-    <input id="location" type="text" placeholder="Zipline West" autocomplete="off" autofocus>
-    <button type="submit">Send</button>
-  </form>
-  <div id="status"></div>
-  <div id="flash"></div>
+  <!-- Name prompt (shown on first visit) -->
+  <div id="nameScreen" style="display:none;text-align:center;">
+    <h1>DozoTime!</h1>
+    <p style="color:#888;margin-bottom:1.5rem;">What's your first name?</p>
+    <form id="nameForm" style="justify-content:center;">
+      <input id="nameInput" type="text" placeholder="Your name" autocomplete="given-name" autofocus>
+      <button type="submit">Go</button>
+    </form>
+  </div>
+
+  <!-- Main app (shown after name is set) -->
+  <div id="mainApp" style="display:none;text-align:center;">
+    <h1>DozoTime!</h1>
+    <button id="enableBtn" style="padding:0.75rem 1.5rem;font-size:1.1rem;font-weight:700;border:none;border-radius:8px;background:#facc15;color:#000;cursor:pointer;margin-bottom:1.5rem;display:none;">Enable Notifications</button>
+    <form id="yoForm">
+      <input id="location" type="text" placeholder="Pour" autocomplete="off" autofocus>
+      <button type="submit">Send</button>
+    </form>
+    <div id="status"></div>
+    <div id="flash"></div>
+  </div>
 
   <script>
     // --- Access Key ---
@@ -101,6 +114,27 @@
       opts.headers = { ...opts.headers, 'x-access-key': ACCESS_KEY };
       return fetch(url, opts);
     }
+
+    // --- Name Screen ---
+    let userName = localStorage.getItem('user_name');
+
+    if (!userName) {
+      document.getElementById('nameScreen').style.display = '';
+      document.getElementById('nameForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('nameInput').value.trim();
+        if (!name) return;
+        localStorage.setItem('user_name', name);
+        userName = name;
+        document.getElementById('nameScreen').style.display = 'none';
+        startApp();
+      });
+    } else {
+      startApp();
+    }
+
+    function startApp() {
+    document.getElementById('mainApp').style.display = '';
 
     const $status = document.getElementById('status');
     const $flash = document.getElementById('flash');
@@ -134,7 +168,7 @@
       await authFetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sub),
+        body: JSON.stringify({ ...sub, name: userName }),
       });
 
       $enableBtn.style.display = 'none';
@@ -183,7 +217,7 @@
         const res = await authFetch('/api/yo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ location }),
+          body: JSON.stringify({ location, name: userName }),
         });
         const data = await res.json();
         flash(`Sent to ${data.sent}`);
@@ -195,6 +229,7 @@
         $input.focus();
       }
     });
+    } // end startApp
   </script>
 </body>
 </html>

@@ -44,9 +44,9 @@ app.get('/api/vapid-public-key', (_req, res) => {
 
 // Subscribe
 app.post('/api/subscribe', (req, res) => {
-  const sub = req.body;
-  subscriptions.set(sub.endpoint, sub);
-  console.log(`+ subscriber (${subscriptions.size} total)`);
+  const { name, ...sub } = req.body;
+  subscriptions.set(sub.endpoint, { ...sub, name: name || 'Unknown' });
+  console.log(`+ subscriber "${name}" (${subscriptions.size} total)`);
   res.status(201).json({ ok: true });
 });
 
@@ -59,14 +59,15 @@ app.post('/api/unsubscribe', (req, res) => {
 
 // Send "DozoTime!" to everyone
 app.post('/api/yo', async (req, res) => {
-  const { location } = req.body;
+  const { location, name } = req.body;
   if (!location || !location.trim()) {
     return res.status(400).json({ error: 'location required' });
   }
 
+  const sender = name || 'Someone';
   const payload = JSON.stringify({
     title: 'DozoTime!',
-    body: location.trim(),
+    body: `${sender}: ${location.trim()}`,
     timestamp: Date.now(),
   });
 
