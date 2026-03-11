@@ -80,7 +80,7 @@ app.post('/api/yo', async (req, res) => {
   const sender = name || 'Someone';
   const payload = JSON.stringify({
     title: 'DozoTime!',
-    body: `${sender}: ${location.trim()}`,
+    body: `${sender} is at ${location.trim()}!`,
     timestamp: Date.now(),
   });
 
