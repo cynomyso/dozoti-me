@@ -84,6 +84,24 @@
   <div id="flash"></div>
 
   <script>
+    // --- Access Key ---
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('key')) {
+      localStorage.setItem('access_key', params.get('key'));
+      window.history.replaceState({}, '', '/');
+    }
+    const ACCESS_KEY = localStorage.getItem('access_key');
+
+    if (!ACCESS_KEY) {
+      document.body.innerHTML = '<h1 style="font-size:2rem;text-align:center;padding:2rem;">Access denied</h1>';
+      throw new Error('No access key');
+    }
+
+    function authFetch(url, opts = {}) {
+      opts.headers = { ...opts.headers, 'x-access-key': ACCESS_KEY };
+      return fetch(url, opts);
+    }
+
     const $status = document.getElementById('status');
     const $flash = document.getElementById('flash');
     const $form = document.getElementById('yoForm');
@@ -107,13 +125,13 @@
 
     async function subscribeToPush() {
       const reg = await navigator.serviceWorker.ready;
-      const { publicKey } = await fetch('/api/vapid-public-key').then((r) => r.json());
+      const { publicKey } = await authFetch('/api/vapid-public-key').then((r) => r.json());
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       });
-      await fetch('/api/subscribe', {
+      await authFetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sub),
@@ -162,7 +180,7 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch('/api/yo', {
+        const res = await authFetch('/api/yo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ location }),

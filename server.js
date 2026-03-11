@@ -25,6 +25,15 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY
 );
 
+// Access key guard
+const ACCESS_KEY = process.env.ACCESS_KEY;
+app.use('/api', (req, res, next) => {
+  if (ACCESS_KEY && req.headers['x-access-key'] !== ACCESS_KEY) {
+    return res.status(403).json({ error: 'forbidden' });
+  }
+  next();
+});
+
 // In-memory subscription store (swap for a DB in production)
 const subscriptions = new Map();
 
