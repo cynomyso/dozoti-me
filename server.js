@@ -1,5 +1,6 @@
 const express = require('express');
 const webpush = require('web-push');
+const fs = require('fs');
 const path = require('path');
 
 // Load .env if present (Railway provides env vars directly)
@@ -47,8 +48,26 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-// In-memory subscription store (swap for a DB in production)
-const subscriptions = new Map();
+// Persistent subscription store
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+const SUBS_FILE = path.join(DATA_DIR, 'subscriptions.json');
+
+function loadSubscriptions() {
+  try {
+    const data = JSON.parse(fs.readFileSync(SUBS_FILE, 'utf8'));
+    return new Map(Object.entries(data));
+  } catch {
+    return new Map();
+  }
+}
+
+function saveSubscriptions() {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(SUBS_FILE, JSON.stringify(Object.fromEntries(subscriptions)));
+}
+
+const subscriptions = loadSubscriptions();
+console.log(`Loaded ${subscriptions.size} subscription(s) from disk`);
 
 // Expose public key to frontend
 app.get('/api/vapid-public-key', (_req, res) => {
@@ -59,6 +78,7 @@ app.get('/api/vapid-public-key', (_req, res) => {
 app.post('/api/subscribe', (req, res) => {
   const { name, ...sub } = req.body;
   subscriptions.set(sub.endpoint, { ...sub, name: name || 'Unknown' });
+  saveSubscriptions();
   console.log(`+ subscriber "${name}" (${subscriptions.size} total)`);
   res.status(201).json({ ok: true });
 });
@@ -66,6 +86,7 @@ app.post('/api/subscribe', (req, res) => {
 // Unsubscribe
 app.post('/api/unsubscribe', (req, res) => {
   subscriptions.delete(req.body.endpoint);
+  saveSubscriptions();
   console.log(`- subscriber (${subscriptions.size} total)`);
   res.json({ ok: true });
 });
@@ -89,6 +110,7 @@ app.post('/api/yo', async (req, res) => {
       webpush.sendNotification(sub, payload).catch((err) => {
         if (err.statusCode === 410 || err.statusCode === 404) {
           subscriptions.delete(sub.endpoint);
+          saveSubscriptions();
         }
         throw err;
       })
