@@ -4,7 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>DozoTime!</title>
-  <link rel="manifest" id="manifest-link" href="/manifest.json">
+  <script>
+    // Must run before manifest link is parsed by iOS Safari
+    var __params = new URLSearchParams(window.location.search);
+    if (__params.has('key')) localStorage.setItem('access_key', __params.get('key'));
+    var __key = localStorage.getItem('access_key') || '';
+    document.write('<link rel="manifest" href="/manifest.json' + (__key ? '?key=' + encodeURIComponent(__key) : '') + '">');
+  </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
@@ -108,7 +114,6 @@
       throw new Error('Reset');
     }
     if (params.has('key')) {
-      localStorage.setItem('access_key', params.get('key'));
       window.history.replaceState({}, '', '/');
     }
     const ACCESS_KEY = localStorage.getItem('access_key');
@@ -117,9 +122,6 @@
       document.body.innerHTML = '<h1 style="font-size:2rem;text-align:center;padding:2rem;">Access denied</h1>';
       throw new Error('No access key');
     }
-
-    // Point manifest to server route with key so Home Screen launch works
-    document.getElementById('manifest-link').href = '/manifest.json?key=' + encodeURIComponent(ACCESS_KEY);
 
     function authFetch(url, opts = {}) {
       opts.headers = { ...opts.headers, 'x-access-key': ACCESS_KEY };
