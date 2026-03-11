@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>DozoTime!</title>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" id="manifest-link" href="/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <style>
@@ -111,6 +111,18 @@
       document.body.innerHTML = '<h1 style="font-size:2rem;text-align:center;padding:2rem;">Access denied</h1>';
       throw new Error('No access key');
     }
+
+    // Update manifest so Home Screen launch includes the key
+    const manifest = {
+      name: 'DozoTime!',
+      short_name: 'DozoTime!',
+      start_url: '/?key=' + encodeURIComponent(ACCESS_KEY),
+      display: 'standalone',
+      background_color: '#3B0A2A',
+      theme_color: '#3B0A2A'
+    };
+    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+    document.getElementById('manifest-link').href = URL.createObjectURL(blob);
 
     function authFetch(url, opts = {}) {
       opts.headers = { ...opts.headers, 'x-access-key': ACCESS_KEY };
