@@ -48,7 +48,7 @@ app.post('/api/unsubscribe', (req, res) => {
   res.json({ ok: true });
 });
 
-// Send "Yo" to everyone
+// Send "DozoTime!" to everyone
 app.post('/api/yo', async (req, res) => {
   const { location } = req.body;
   if (!location || !location.trim()) {
@@ -56,7 +56,7 @@ app.post('/api/yo', async (req, res) => {
   }
 
   const payload = JSON.stringify({
-    title: 'Yo!',
+    title: 'DozoTime!',
     body: location.trim(),
     timestamp: Date.now(),
   });
@@ -74,9 +74,9 @@ app.post('/api/yo', async (req, res) => {
 
   const sent = results.filter((r) => r.status === 'fulfilled').length;
   const failed = results.length - sent;
-  console.log(`Yo "${location.trim()}" → ${sent} delivered, ${failed} failed`);
+  console.log(`DozoTime! "${location.trim()}" → ${sent} delivered, ${failed} failed`);
   res.json({ sent, failed });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Yo server → http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`DozoTime! server → http://localhost:${PORT}`));
