@@ -101,6 +101,12 @@
   <script>
     // --- Access Key ---
     const params = new URLSearchParams(window.location.search);
+    if (params.has('reset')) {
+      localStorage.clear();
+      window.history.replaceState({}, '', '/');
+      document.body.innerHTML = '<h1 style="font-size:2rem;text-align:center;padding:2rem;">Cleared! You can close this tab.</h1>';
+      throw new Error('Reset');
+    }
     if (params.has('key')) {
       localStorage.setItem('access_key', params.get('key'));
       window.history.replaceState({}, '', '/');
