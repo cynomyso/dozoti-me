@@ -179,7 +179,15 @@
 
     async function checkPush() {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        $status.textContent = 'Push notifications not supported in this browser.';
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isStandalone = window.navigator.standalone === true;
+        if (isIOS && !isStandalone) {
+          $status.innerHTML = 'To get notifications:<br>1. Open this page in <b>Safari</b><br>2. Tap Share → <b>Add to Home Screen</b><br>3. Open from your Home Screen';
+        } else if (isIOS) {
+          $status.textContent = 'Push not supported — try reopening from the Home Screen.';
+        } else {
+          $status.textContent = 'Push notifications not supported in this browser.';
+        }
         return;
       }
 
