@@ -118,17 +118,8 @@
       throw new Error('No access key');
     }
 
-    // Update manifest so Home Screen launch includes the key
-    const manifest = {
-      name: 'DozoTime!',
-      short_name: 'DozoTime!',
-      start_url: '/?key=' + encodeURIComponent(ACCESS_KEY),
-      display: 'standalone',
-      background_color: '#3B0A2A',
-      theme_color: '#3B0A2A'
-    };
-    const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-    document.getElementById('manifest-link').href = URL.createObjectURL(blob);
+    // Point manifest to server route with key so Home Screen launch works
+    document.getElementById('manifest-link').href = '/manifest.json?key=' + encodeURIComponent(ACCESS_KEY);
 
     function authFetch(url, opts = {}) {
       opts.headers = { ...opts.headers, 'x-access-key': ACCESS_KEY };

@@ -17,6 +17,19 @@ if (require('fs').existsSync(envPath)) {
 
 const app = express();
 app.use(express.json());
+// Dynamic manifest — embeds access key in start_url for PWA Home Screen launch
+app.get('/manifest.json', (req, res) => {
+  const key = req.query.key || '';
+  res.json({
+    name: 'DozoTime!',
+    short_name: 'DozoTime!',
+    start_url: key ? `/?key=${encodeURIComponent(key)}` : '/',
+    display: 'standalone',
+    background_color: '#3B0A2A',
+    theme_color: '#3B0A2A',
+  });
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 webpush.setVapidDetails(
