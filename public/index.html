@@ -181,7 +181,7 @@
       await authFetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...sub, name: userName }),
+        body: JSON.stringify({ ...sub.toJSON(), name: userName }),
       });
 
       $enableBtn.style.display = 'none';
