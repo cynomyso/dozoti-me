@@ -11,8 +11,8 @@
     var __key = localStorage.getItem('access_key') || '';
     document.write('<link rel="manifest" href="/manifest.json' + (__key ? '?key=' + encodeURIComponent(__key) : '') + '">');
   </script>
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-status-bar-style" content="black-translucent">
   <style>
     * { margin: 0; box-sizing: border-box; }
     body {
@@ -83,7 +83,7 @@
   <!-- Name prompt (shown on first visit) -->
   <div id="nameScreen" style="display:none;text-align:center;">
     <div style="font-size:5rem;line-height:1;">🍷</div>
-    <h1>DozoTime!!</h1>
+    <h1>DozoTime!</h1>
     <p style="color:#888;margin-bottom:1.5rem;">What's your first name?</p>
     <form id="nameForm" style="justify-content:center;">
       <input id="nameInput" type="text" placeholder="Your name" autocomplete="given-name" autofocus>
